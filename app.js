@@ -31,44 +31,38 @@ let userInput = 0;
 // }
 
 const createCustomer = async (name, age) => {
-    await mongoose.connect(process.env.MONGODB_URI);
     await Customer.create({
         name: name,
         age: age,
     })
-    await mongoose.disconnect();
 }
 
 const getCustomers = async (id) => {
     await mongoose.connect(process.env.MONGODB_URI);
     if(id){
         const specificCustomer = await Customer.find({_id})
-        await mongoose.disconnect();
         return specificCustomer;
     }
     const customerList = await Customer.find();
-    await mongoose.disconnect();
     return customerList;
 }
 
 const updateCustomer = async (id) => {
     const newName = prompt('What is the customers new name?');
     const newAge = prompt('What is the customers new age?');
-    await mongoose.connect(process.env.MONGODB_URI);
-    const specificCustomer = await Customer.findByIdAndUpdate(id);
+    const specificCustomer = await Customer.findById(id);
     specificCustomer.name = newName;
     specificCustomer.age = newAge;
     await specificCustomer.save();
-    await mongoose.disconnect();
-    
+   
 }
+
 const deleteCustomer = async (id) => {
-    await mongoose.connect(process.env.MONGODB_URI);
     await Customer.findByIdAndDelete(id);
-    await mongoose.disconnect();
 }
 
 const mainLoop = async () => {
+    await mongoose.connect(process.env.MONGODB_URI);
     while(userInput !== '5'){
         console.log('\nWelcome to the CRM\n\nWhat would you like to do?');
         console.log('1. Create a customer\n2. View all customers\n3. Update a customer\n4. Delete a customer\n5. Exit\n')
@@ -94,11 +88,11 @@ const mainLoop = async () => {
             await deleteCustomer(inputId);
         }else if(userInput === '5'){
             console.log('Exiting...');
+            await mongoose.disconnect();
             process.exit();
         }
     }
 }
-
 
 mainLoop();
 
