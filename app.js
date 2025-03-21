@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const Customer = require('./models/customer.js');
 const prompt = require('prompt-sync')();
 
-let userInput = 0;
+
 
 // const connect = async (name, age) => {
 
@@ -30,38 +30,9 @@ let userInput = 0;
 //     await Customer.create(newCustomerData);
 // }
 
-const createCustomer = async (name, age) => {
-    await Customer.create({
-        name: name,
-        age: age,
-    })
-}
-
-const getCustomers = async (id) => {
-    await mongoose.connect(process.env.MONGODB_URI);
-    if(id){
-        const specificCustomer = await Customer.find({_id})
-        return specificCustomer;
-    }
-    const customerList = await Customer.find();
-    return customerList;
-}
-
-const updateCustomer = async (id) => {
-    const newName = prompt('What is the customers new name?');
-    const newAge = prompt('What is the customers new age?');
-    const specificCustomer = await Customer.findById(id);
-    specificCustomer.name = newName;
-    specificCustomer.age = newAge;
-    await specificCustomer.save();
-   
-}
-
-const deleteCustomer = async (id) => {
-    await Customer.findByIdAndDelete(id);
-}
 
 const mainLoop = async () => {
+    let userInput = 0;
     await mongoose.connect(process.env.MONGODB_URI);
     while(userInput !== '5'){
         console.log('\nWelcome to the CRM\n\nWhat would you like to do?');
@@ -71,28 +42,33 @@ const mainLoop = async () => {
             console.log('\nCreate a new customer-\n')
             const name = prompt('Enter new customers name: ');
             const age = prompt('Enter new customers age: ');
-            await createCustomer(name, age);
+            await Customer.create({
+                name: name,
+                age: age,
+            })
         }else if(userInput === '2'){
             console.log('Here is a list of all customers-\n');
-            const customerList = await getCustomers();
+            const customerList = await Customer.find();
             for(customer of customerList){
                 console.log(`id: ${customer._id} -- Name: ${customer.name}, Age: ${customer.age}\n`)
             }
         }else if(userInput === '3'){
             console.log('Copy and paste the id of the customer you would like to update here:');
             const inputId = prompt('');
-            await updateCustomer(inputId);
+            const specificCustomer = await Customer.findById(inputId);
+            specificCustomer.name = prompt('What is the customers new name?');
+            specificCustomer.age = prompt('What is the customers new age?');
+            await specificCustomer.save();
         }else if(userInput === '4'){
             console.log('Copy and paste the id of the customer you would like to delete here:');
             const inputId = prompt('');
-            await deleteCustomer(inputId);
-        }else if(userInput === '5'){
-            console.log('Exiting...');
-            await mongoose.disconnect();
-            process.exit();
+            await Customer.findByIdAndDelete(inputId);
+           
         }
     }
+    console.log('Exiting...');
+    await mongoose.disconnect();
+    process.exit();
 }
 
 mainLoop();
-
